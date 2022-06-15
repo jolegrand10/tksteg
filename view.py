@@ -130,42 +130,55 @@ class View:
         #
         self.menu_bar.add_cascade(label='Steganography', menu=self.steg_menu)
         #
-        # window menu
-        self.win_menu = tk.Menu(self.menu_bar, tearoff=0)
-        self.win_menu.add_command(label="Text", command=self.cmd_toggle_win, accelerator="Ctrl+T")
-        #
-        self.menu_bar.add_cascade(label='Show', menu=self.win_menu)
-        #
         self.root.config(menu=self.menu_bar)
         self.root.bind_all("<Control-q>", self.cmd_quit)
         self.root.bind_all("<Control-s>", self.cmd_save)
         self.root.bind_all("<Control-w>", self.cmd_close)
         self.root.bind_all("<Control-o>", self.cmd_open)
-        self.root.bind_all("<Control-t>", self.cmd_toggle_win)
+        self.root.bind_all("<Control-t>", self.cmd_toggle_tab)
         self.root.bind_all("<Control-d>", self.cmd_decode)
         self.root.bind_all("<Control-e>", self.cmd_encode)
 
     def make_widgets(self):
+        def tab_changed(*args):
+            self.showpic = self.notebook.index(self.notebook.select())==0
+            # print("tab_changed")
+            # print(self.notebook.select())
+            # print(self.notebook.index(self.notebook.select()))#0:Pic 1:Txt
         self.make_menus()
+        #
+        #  Notebook
+        #
+        self.notebook = ttk.Notebook(self.root)
+        self.notebook.pack(expand=True)
+        #
+        # Frames
+        #
+        self.framePic = ttk.Frame(self.notebook, widt=View.WIDTH, height=View.HEIGHT)
+        self.frameTxt = ttk.Frame(self.notebook, widt=View.WIDTH, height=View.HEIGHT)
+        self.framePic.pack(fill='both', expand=True)
+        self.frameTxt.pack(fill='both', expand=True)
+        self.notebook.add(self.framePic, text='Picture')
+        self.notebook.add(self.frameTxt, text='Text')
+        self.notebook.bind('<<NotebookTabChanged>>', tab_changed)
+        self.notebook.select(0)
+        print(self.notebook.index(self.notebook.select()))
         # canvas
-        self.canvas = tk.Canvas(self.root, width=View.WIDTH, height=View.HEIGHT)
+        self.canvas = tk.Canvas(self.framePic, width=View.WIDTH, height=View.HEIGHT)
         self.canvas.pack()
         self.showpic = True
         # editable text window
-        self.text = tk.Text(self.root)
+        self.text = tk.Text(self.frameTxt, width=View.WIDTH, height=View.HEIGHT)
+        self.text.pack()
 
-
-    def cmd_toggle_win(self, event=None):
-        if self.showpic:
-            self.canvas.pack_forget()
-            self.text.pack(fill=tk.BOTH, expand=1)
-            self.win_menu.entryconfigure(1,label="Picture")
+    def cmd_toggle_tab(self, event=None):
+        if self.notebook.index(self.notebook.select())==0:
             self.showpic = False
+            self.notebook.select(1)
         else:
-            self.text.pack_forget()
-            self.canvas.pack()
-            self.win_menu.entryconfigure(1, label="Text")
             self.showpic = True
+            self.notebook.select(0)
+
 
     def cmd_open(self, event=None):
         if self.showpic:
@@ -179,7 +192,7 @@ class View:
         title = "Open an image file"
         self.picpath = fd.askopenfilename(title=title,
                                           filetypes=View.INPICFILES)
-        if self.picpath.strip():
+        if self.picpath and self.picpath.strip():
             w = ReadImageWorker(self.model, self.root, self)
             w.start()
             while not w.finished:
@@ -196,9 +209,14 @@ class View:
         title = "Open an text file"
         self.txtpath = fd.askopenfilename(title=title,
                                           filetypes=View.TXTFILES)
-        if self.txtpath.strip():
+        if self.txtpath and self.txtpath.strip():
             self.model.read_data(self.txtpath)
             self.text.insert(tk.END, str(self.model.data, encoding='utf-8'))
+        else:
+            title = "Open failed"
+            message = "No text file was specified"
+            tk.messagebox.showinfo(title,message)
+            logging.warning(f"{title}. {message}")
 
     def cmd_save(self, event=None):
         if self.showpic:
@@ -276,7 +294,7 @@ class View:
                 time.sleep(0.1)
                 self.root.update()
             if not self.showpic:
-                self.cmd_toggle_win()
+                self.cmd_toggle_tab()
         else:
             title = "Encoding failed"
             message = "Cannot find any text to encode"
@@ -291,7 +309,7 @@ class View:
                 time.sleep(0.1)
                 self.root.update()
             if self.showpic:
-                self.cmd_toggle_win()
+                self.cmd_toggle_tab()
             self.text.insert(tk.END, self.model.data.decode('utf-8'))
         except UnicodeDecodeError:
             title = "Decoding failed"
