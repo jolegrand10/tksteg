@@ -11,6 +11,7 @@ To install necessary libs:
 `$ pip install -r requirements.txt`
 
 To build exe for Windows:
+
 `$ python setup.py build `
 
 To build exe for Linux, first:
