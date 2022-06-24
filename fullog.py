@@ -2,7 +2,7 @@ import logging
 from logging.handlers import RotatingFileHandler
 
 
-class Full_Log():
+class Full_Log:
     """
         setup  full logging in a single call using a kind-of Façade pattern
     """

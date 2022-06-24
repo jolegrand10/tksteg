@@ -1,12 +1,13 @@
 import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog as fd
-from PIL import Image, ImageTk
+from PIL import Image
 from PIL.Image import Resampling
 from PIL.ImageTk import PhotoImage
 import logging
 import time
 import threading
+
 
 class Worker:
     def __init__(self, model, win, msg):
@@ -16,11 +17,11 @@ class Worker:
         self.message.pack()
         self.message.place(x=self.win.winfo_width() // 2, y=self.win.winfo_height() // 2 - 30, anchor="center")
         self.pb = ttk.Progressbar(self.win,
-                                 orient ='horizontal',
-                                 mode = 'indeterminate',
-                                 length=300)
+                                  orient='horizontal',
+                                  mode='indeterminate',
+                                  length=300)
         self.pb.pack()
-        self.pb.place(x=self.win.winfo_width()//2,y=self.win.winfo_height()//2,anchor="center")
+        self.pb.place(x=self.win.winfo_width() // 2, y=self.win.winfo_height() // 2, anchor="center")
         self.pb.start()
         self.finished = False
 
@@ -28,7 +29,7 @@ class Worker:
         raise NotImplementedError
 
     def start(self):
-        self.th = threading.Thread(target = self.run)
+        self.th = threading.Thread(target=self.run)
         self.th.start()
 
     def finish(self):
@@ -36,6 +37,7 @@ class Worker:
         self.pb.stop()
         self.pb.destroy()
         self.message.destroy()
+
 
 class DecodingWorker(Worker):
     def __init__(self, model, win):
@@ -63,7 +65,7 @@ class ReadImageWorker(Worker):
     def __init__(self, model, win, view):
         self.view = view
         super().__init__(model, win, "Reading image")
-        
+
     def run(self):
         def fit_size(pic):
             w, h = pic.width, pic.height
@@ -71,6 +73,7 @@ class ReadImageWorker(Worker):
             ratioh = h / View.HEIGHT
             ratio = max(ratiow, ratioh)
             return int(w / ratio), int(h / ratio)
+
         #
         # read it for the view - requires a TkImage
         #
@@ -83,6 +86,7 @@ class ReadImageWorker(Worker):
         #
         self.model.read_image(self.view.picpath)
         self.finish()
+
 
 class View:
     WIDTH = 800
@@ -101,7 +105,6 @@ class View:
         self.txtpath = None
         self.picpath = None
         self.pic = None
-
 
     def make_menus(self):
         # menu bar
@@ -141,10 +144,11 @@ class View:
 
     def make_widgets(self):
         def tab_changed(*args):
-            self.showpic = self.notebook.index(self.notebook.select())==0
+            self.showpic = self.notebook.index(self.notebook.select()) == 0
             # print("tab_changed")
             # print(self.notebook.select())
             # print(self.notebook.index(self.notebook.select()))#0:Pic 1:Txt
+
         self.make_menus()
         #
         #  Notebook
@@ -154,8 +158,8 @@ class View:
         #
         # Frames
         #
-        self.framePic = ttk.Frame(self.notebook, widt=View.WIDTH, height=View.HEIGHT)
-        self.frameTxt = ttk.Frame(self.notebook, widt=View.WIDTH, height=View.HEIGHT)
+        self.framePic = ttk.Frame(self.notebook, width=View.WIDTH, height=View.HEIGHT)
+        self.frameTxt = ttk.Frame(self.notebook, width=View.WIDTH, height=View.HEIGHT)
         self.framePic.pack(fill='both', expand=True)
         self.frameTxt.pack(fill='both', expand=True)
         self.notebook.add(self.framePic, text='Picture')
@@ -172,13 +176,12 @@ class View:
         self.text.pack()
 
     def cmd_toggle_tab(self, event=None):
-        if self.notebook.index(self.notebook.select())==0:
+        if self.notebook.index(self.notebook.select()) == 0:
             self.showpic = False
             self.notebook.select(1)
         else:
             self.showpic = True
             self.notebook.select(0)
-
 
     def cmd_open(self, event=None):
         if self.showpic:
@@ -187,7 +190,6 @@ class View:
             self.cmd_opentxt()
 
     def cmd_openpic(self):
-
 
         title = "Open an image file"
         self.picpath = fd.askopenfilename(title=title,
@@ -201,9 +203,8 @@ class View:
         else:
             title = "Open failed"
             message = "No image was specified"
-            tk.messagebox.showinfo(title,message)
+            tk.messagebox.showinfo(title, message)
             logging.warning(f"{title}. {message}")
-            
 
     def cmd_opentxt(self):
         title = "Open an text file"
@@ -215,7 +216,7 @@ class View:
         else:
             title = "Open failed"
             message = "No text file was specified"
-            tk.messagebox.showinfo(title,message)
+            tk.messagebox.showinfo(title, message)
             logging.warning(f"{title}. {message}")
 
     def cmd_save(self, event=None):
@@ -226,12 +227,12 @@ class View:
 
     def cmd_savepic(self):
         do_it = True
-        if self.picpath[-3:].lower()=='jpg':
+        if self.picpath[-3:].lower() == 'jpg':
             logging.warning("Cannot save to jpg. Proposing png instead.")
             #
             # replace JPG by PNG in output image
             #
-            self.picpath=self.picpath[:-3]+'png'
+            self.picpath = self.picpath[:-3] + 'png'
             message = f"JPG hardly supports steganography. \nSave to '{self.picpath}' instead ?"
             do_it = tk.messagebox.askokcancel(
                 title='Save image to PNG',
@@ -239,9 +240,8 @@ class View:
         if do_it:
             self.model.write_image(self.picpath)
 
-
     def cmd_savetxt(self):
-        self.model.data = bytearray(self.text.get("1.0", tk.END),encoding='utf-8')
+        self.model.data = bytearray(self.text.get("1.0", tk.END), encoding='utf-8')
         if self.txtpath:
             self.model.write_data(self.txtpath)
         else:
@@ -255,7 +255,7 @@ class View:
 
     def cmd_savepicas(self):
         title = "Save picture file as"
-        self.picpath = fd.asksaveasfilename(title= title,
+        self.picpath = fd.asksaveasfilename(title=title,
                                             filetypes=View.OUTPICFILES,
                                             defaultextension=View.OUTPICFILES)
         self.cmd_savepic()
@@ -267,7 +267,6 @@ class View:
                                             defaultextension=View.TXTFILES)
         if self.txtpath:
             self.cmd_savetxt()
-
 
     def cmd_close(self, event=None):
         if self.showpic:
@@ -281,13 +280,13 @@ class View:
     def cmd_closetxt(self):
         self.text.delete('1.0', tk.END)
 
-    def cmd_quit(self,event=None):
+    def cmd_quit(self, event=None):
         self.root.destroy()
 
     def cmd_encode(self, event=None):
         s = self.text.get("1.0", tk.END)
-        self.model.data = bytes(s,'utf-8')
-        if len(self.model.data) and s!='\n':
+        self.model.data = bytes(s, 'utf-8')
+        if len(self.model.data) and s != '\n':
             w = EncodingWorker(self.model, self.root)
             w.start()
             while not w.finished:
@@ -298,7 +297,7 @@ class View:
         else:
             title = "Encoding failed"
             message = "Cannot find any text to encode"
-            tk.messagebox.showinfo(title,message)
+            tk.messagebox.showinfo(title, message)
             logging.warning(f"{title}. {message}")
 
     def cmd_decode(self, event=None):
@@ -314,19 +313,15 @@ class View:
         except UnicodeDecodeError:
             title = "Decoding failed"
             message = "Cannot find any text message in the present picture"
-            tk.messagebox.showinfo(title,message)
+            tk.messagebox.showinfo(title, message)
             logging.warning(f"{title}. {message}")
-
-
-
-
 
     def run(self):
         self.root.mainloop()
 
 
 def main():
-    v = View(controller=None, model= None)
+    v = View(controller=None, model=None)
     v.root.mainloop()
 
 

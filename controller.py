@@ -1,6 +1,7 @@
 from view import View
 from stegano import Stegano
 
+
 class Controller:
 
     def __init__(self):

@@ -1,6 +1,7 @@
 import cv2 as cv
 import logging
 
+
 class Stegano:
     """ encode/decode a byte-msg in an image"""
 
@@ -16,7 +17,6 @@ class Stegano:
         self.image = cv.imread(path)
         self.n, self.p, _ = self.image.shape
 
-
     def read_data(self, path):
         with open(path, "rb") as f:
             self.data = f.read()
@@ -30,8 +30,6 @@ class Stegano:
         with open(path, "wb") as f:
             f.write(self.data)
             logging.info(f"{len(self.data)} bytes written")
-
-
 
     def encode(self):
         """ message is a byte array """
@@ -140,12 +138,8 @@ class Stegano:
                             bs = ""
 
 
-
-
 def main():
     pass
-
-
 
 
 if __name__ == '__main__':
