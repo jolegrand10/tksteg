@@ -1,6 +1,6 @@
 # tksteg
 
-A steganography application, written in Python, using TkInter.
+A simple steganography application, written in Python, using TkInter.
 
 Available for Windows and Linux.
 
@@ -47,3 +47,8 @@ or execute the following 1-line command :
 Image files having non-ASCII chars in their path or name cannot be loaded because CV2 fails to open them. A workaround is to move and/or rename such files to avoid non-ASCII chars.
 
 Text files exceeding image capacity are truncated.
+
+Alerts are issued and warnings are logged when this happens.
+
+Encoded images cannot be saved in JPG because its compression scheme looses the information on low-weight bits.
+Suitable image formats are proposed, like PNG.
