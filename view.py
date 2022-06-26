@@ -57,7 +57,11 @@ class EncodingWorker(Worker):
         super().__init__(model, win, "Encoding")
 
     def run(self):
-        self.model.encode()
+        n = self.model.encode()
+        if n< len(self.model.data):
+            message = "Text too long for this image. Truncated."
+            logging.warning(message)
+            tk.messagebox.showinfo("Warning", message)
         self.finish()
 
 
@@ -73,20 +77,32 @@ class ReadImageWorker(Worker):
             ratioh = h / View.HEIGHT
             ratio = max(ratiow, ratioh)
             return int(w / ratio), int(h / ratio)
-
-        #
-        # read it for the view - requires a TkImage
-        #
-        self.view.img = Image.open(self.view.picpath)
-        resized_image = self.view.img.resize(fit_size(self.view.img), Resampling.LANCZOS)
-        self.view.pic = PhotoImage(resized_image)
-        self.view.canvas.create_image(0, 0, anchor=tk.NW, image=self.view.pic)
         #
         # update the model (model needs a cv2 image)
         #
-        self.model.read_image(self.view.picpath)
-        self.finish()
+        try:
+            self.model.read_image(self.view.picpath)
+        except Exception as e:
+            logging.error(f"Cannot read cv2 image. Reason: {e}")
+        if self.model.image is not None:
+            #
+            # read it for the view - requires a TkImage
+            #
+            self.view.img = Image.open(self.view.picpath)
+            resized_image = self.view.img.resize(fit_size(self.view.img), Resampling.LANCZOS)
+            self.view.pic = PhotoImage(resized_image)
+            self.view.canvas.create_image(0, 0, anchor=tk.NW, image=self.view.pic)
+        else:
+            title = "Open failed"
+            message = f"Cannot load image {self.view.picpath}"
+            info = "Avoid non ASCII chars in file path because they make CV2 sick !"
+            logging.error(message)
+            if not self.view.picpath.isascii():
+                message += '\n' + info
+                logging.error(info)
+            tk.messagebox.showinfo(title, message)
 
+        self.finish()
 
 class View:
     WIDTH = 800
@@ -132,6 +148,8 @@ class View:
         self.steg_menu.add_command(label="Decode", command=self.cmd_decode, accelerator="Ctrl+D")
         #
         self.menu_bar.add_cascade(label='Steganography', menu=self.steg_menu)
+
+        self.refresh_steg_menu()
         #
         self.root.config(menu=self.menu_bar)
         self.root.bind_all("<Control-q>", self.cmd_quit)
@@ -142,12 +160,12 @@ class View:
         self.root.bind_all("<Control-d>", self.cmd_decode)
         self.root.bind_all("<Control-e>", self.cmd_encode)
 
+
+
+
     def make_widgets(self):
         def tab_changed(*args):
             self.showpic = self.notebook.index(self.notebook.select()) == 0
-            # print("tab_changed")
-            # print(self.notebook.select())
-            # print(self.notebook.index(self.notebook.select()))#0:Pic 1:Txt
 
         self.make_menus()
         #
@@ -166,7 +184,6 @@ class View:
         self.notebook.add(self.frameTxt, text='Text')
         self.notebook.bind('<<NotebookTabChanged>>', tab_changed)
         self.notebook.select(0)
-        print(self.notebook.index(self.notebook.select()))
         # canvas
         self.canvas = tk.Canvas(self.framePic, width=View.WIDTH, height=View.HEIGHT)
         self.canvas.pack()
@@ -188,6 +205,7 @@ class View:
             self.cmd_openpic()
         else:
             self.cmd_opentxt()
+        self.refresh_steg_menu()
 
     def cmd_openpic(self):
 
@@ -273,6 +291,8 @@ class View:
             self.cmd_closepic()
         else:
             self.cmd_closetxt()
+        self.refresh_steg_menu()
+
 
     def cmd_closepic(self):
         self.canvas.delete("all")
@@ -315,6 +335,15 @@ class View:
             message = "Cannot find any text message in the present picture"
             tk.messagebox.showinfo(title, message)
             logging.warning(f"{title}. {message}")
+
+    def refresh_steg_menu(self):
+        self.steg_menu.entryconfig("Encode", state="active" if
+                                   self.model.image is not None
+                                    else "disabled")
+        self.steg_menu.entryconfig("Decode", state="active" if
+                                   self.model.image is not None
+                                   else "disabled")
+        logging.debug("Refreshing steg menu now !")
 
     def run(self):
         self.root.mainloop()

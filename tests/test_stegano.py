@@ -33,7 +33,9 @@ class TestStegano(unittest.TestCase):
         t1 = s.data
         self.assertEqual(t, t1)
 
-
+    def test_read_sick_file(self):
+        s = Stegano()
+        self.assertRaises(Exception, s.read_image, 'tests/îmàgé.jpg')
 
 if __name__ == '__main__':
     unittest.main()

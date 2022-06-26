@@ -3,7 +3,7 @@ import logging
 
 
 class Stegano:
-    """ encode/decode a byte-msg in an image"""
+    """ encode/decode a byte-msg in/from an image without visible difference"""
 
     def __init__(self):
         """ image is an np.ndarray as used in cv2 """
@@ -14,13 +14,19 @@ class Stegano:
 
     def read_image(self, path):
         logging.info(f"Read image from {path}")
-        self.image = cv.imread(path)
-        self.n, self.p, _ = self.image.shape
+        try:
+            self.image = cv.imread(path)
+        except Exception as e:
+            logging.error(f"Failed to read cv2 image. Reason: {e}")
+        if self.image is None:
+            raise Exception("Failed to read cv2 image")
+        else:
+            self.n, self.p, _ = self.image.shape
 
     def read_data(self, path):
         with open(path, "rb") as f:
             self.data = f.read()
-        logging.info(f"{len(self.data)} bytes read")
+        logging.info(f"{len(self.data)} bytes read from {path}")
 
     def write_image(self, path):
         logging.info(f"Write image to {path}")
@@ -43,14 +49,13 @@ class Stegano:
             message = message[:maxlen - 1]  # - 1 accounts for the termination mark
         #
         # Starting position in the image, where the message will be encoded
-        # Only third channel, numbered 2, will be affected
         #
         i = 0  # row index
         j = 0  # column index
-        k = 0  # color index
+        k = 0  # color index (or channel index, for R,G or B)
         #
         # message is processed byte by byte
-        # a null byte is added as the end of message mark
+        # a null byte is added as the end of message to mark its end
         #
         for c in message + bytearray((0,)):
             #
@@ -106,7 +111,7 @@ class Stegano:
             for j in range(self.p):
                 for k in range(3):
                     #
-                    # collect low weight bit from red color
+                    # collect low weight bit
                     #
                     b = self.image[i, j, k] & 1
                     #

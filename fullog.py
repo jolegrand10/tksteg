@@ -17,7 +17,7 @@ class Full_Log:
         # redefine the root logger
         #
         logger = logging.getLogger()
-        logger.setLevel(logging.DEBUG)
+        logger.setLevel(logging.INFO)
         formatter = logging.Formatter('%(asctime)s *%(levelname)s* %(message)s', "%Y-%m-%d %H:%M:%S")
         file_handler = RotatingFileHandler(name+'.log', 'a', 100000, 3)
 
