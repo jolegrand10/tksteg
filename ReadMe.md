@@ -44,7 +44,8 @@ or execute the following 1-line command :
 
 ## Known limitations
 
-Image files having non-ASCII chars in their path or name cannot be loaded because CV2 fails to open them. A workaround is to move and/or rename such files to avoid non-ASCII chars.
+Image files having non-ASCII chars in their path or name may not be loaded because CV2 fails to open them. A workaround is to move and/or rename such files to avoid non-ASCII chars.
+This behaviour is observed on Windows, not in Linux.
 
 Text files exceeding image capacity are truncated.
 

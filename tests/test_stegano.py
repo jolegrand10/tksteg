@@ -38,6 +38,7 @@ class TestStegano(unittest.TestCase):
         s = Stegano()
         if sys.platform == 'win32':
             self.assertRaises(Exception, s.read_image, 'tests/îmàgé.jpg')
+        # cv2 @linux seems to behave properly
 
 if __name__ == '__main__':
     unittest.main()
