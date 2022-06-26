@@ -1,5 +1,6 @@
 import unittest
 from stegano import Stegano
+import sys
 
 class TestStegano(unittest.TestCase):
 
@@ -35,7 +36,8 @@ class TestStegano(unittest.TestCase):
 
     def test_read_sick_file(self):
         s = Stegano()
-        self.assertRaises(Exception, s.read_image, 'tests/îmàgé.jpg')
+        if sys.platform == 'win32':
+            self.assertRaises(Exception, s.read_image, 'tests/îmàgé.jpg')
 
 if __name__ == '__main__':
     unittest.main()
