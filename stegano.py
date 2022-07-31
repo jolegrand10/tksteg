@@ -1,9 +1,13 @@
 import cv2 as cv
 import logging
-
+import sys
 
 class Stegano:
     """ encode/decode a byte-msg in/from an image without visible difference"""
+
+    INPICFILES = (('image files', '.jpg .png .bmp'),)
+    OUTPICFILES = (('image files', '.jpg .png .bmp'),)
+    TXTFILES = (('text files', '*.txt'),)
 
     def __init__(self):
         """ image is an np.ndarray as used in cv2 """
@@ -28,6 +32,9 @@ class Stegano:
             self.data = f.read()
         logging.info(f"{len(self.data)} bytes read from {path}")
 
+    def input_data(self):
+        self.data=sys.stdin.read()
+
     def write_image(self, path):
         logging.info(f"Write image to {path}")
         cv.imwrite(path, self.image)
@@ -36,6 +43,13 @@ class Stegano:
         with open(path, "wb") as f:
             f.write(self.data)
             logging.info(f"{len(self.data)} bytes written")
+
+    def output_data(self):
+        sys.stdout.write(self.data)
+        logging.info(f"{len(self.data)} bytes written")
+
+    def output_image(self, dotext):
+        sys.stdout.buffer.write(cv.imencode(dotext, img)[1].tobytes())
 
     def encode(self):
         """ message is a byte array """

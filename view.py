@@ -107,9 +107,6 @@ class ReadImageWorker(Worker):
 class View:
     WIDTH = 800
     HEIGHT = 600
-    INPICFILES = (('image files', '.jpg .png .bmp'),)
-    OUTPICFILES = (('image files', '.jpg .png .bmp'),)
-    TXTFILES = (('text files', '*.txt'),)
 
     def __init__(self, controller, model):
         self.controller = controller
@@ -211,7 +208,7 @@ class View:
 
         title = "Open an image file"
         self.picpath = fd.askopenfilename(title=title,
-                                          filetypes=View.INPICFILES)
+                                          filetypes=Stegano.INPICFILES)
         if self.picpath and self.picpath.strip():
             w = ReadImageWorker(self.model, self.root, self)
             w.start()
@@ -274,15 +271,15 @@ class View:
     def cmd_savepicas(self):
         title = "Save picture file as"
         self.picpath = fd.asksaveasfilename(title=title,
-                                            filetypes=View.OUTPICFILES,
-                                            defaultextension=View.OUTPICFILES)
+                                            filetypes=Stegano.OUTPICFILES,
+                                            defaultextension=Stegano.OUTPICFILES)
         self.cmd_savepic()
 
     def cmd_savetxtas(self):
         title = "Save text file as"
         self.txtpath = fd.asksaveasfilename(title=title,
-                                            filetypes=View.TXTFILES,
-                                            defaultextension=View.TXTFILES)
+                                            filetypes=Stegano.TXTFILES,
+                                            defaultextension=Stegano.TXTFILES)
         if self.txtpath:
             self.cmd_savetxt()
 
